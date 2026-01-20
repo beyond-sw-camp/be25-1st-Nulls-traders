@@ -1,4 +1,6 @@
--- ADMIN_001 관리자 로그인
+-- ============================================
+-- ADMIN_001 (관리자 로그인)
+-- ============================================
 
 -- 커뮤니티 관리자 추가
 INSERT INTO admins (admin_id, admin_email, is_system_admin, is_community_admin, created_at) VALUES
@@ -22,8 +24,9 @@ SELECT
 FROM admins
 WHERE admin_id = '관리자001';
 
-
--- ADMIN_002 개인정보 관리
+-- ============================================
+-- ADMIN_002 (개인정보 관리)
+-- ============================================
 
 -- 김정수(users.user_no = 3) 이메일 주소 변경
 INSERT INTO admin_modification_log (admin_no, user_no, modi_type, modi_detail, modified_at) VALUES
@@ -40,7 +43,9 @@ SELECT user_mobile
 FROM users
 WHERE user_no = 4;
 
--- ADMIN_003 대시보드
+-- ============================================
+-- ADMIN_003 (대시보드)
+-- ============================================
 
 -- 대시보드 데이터 입력
 INSERT INTO dashboard (total_user_count, register_count, login_count) VALUES
@@ -56,7 +61,9 @@ FROM dashboard
 ORDER BY created_at DESC
 LIMIT 1;
 
--- ADMIN 004 공지사항 및 알림
+-- ============================================
+-- ADMIN 004 (공지사항 및 알림)
+-- ============================================
 
 -- 공지사항 작성
 INSERT INTO admin_notification (admin_no, noti_title, noti_text, is_alert) VALUES

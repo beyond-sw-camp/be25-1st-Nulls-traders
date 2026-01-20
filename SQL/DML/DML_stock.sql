@@ -4,16 +4,16 @@
 -- ============================================
 SET @target_stock01 = '05'; -- 삼성전자, 현대차
 SELECT s.stock_code,
-		 s.stock_name,
-		 s.market_type,
-		 sp.current_price,
-		 sp.prev_close,
-		 sp.change_amount,
-		 sp.change_rate
+    s.stock_name,
+    s.market_type,
+    sp.current_price,
+    sp.prev_close,
+    sp.change_amount,
+    sp.change_rate
 FROM stocks s
 INNER JOIN stock_price sp ON s.stock_code = sp.stock_code
 WHERE s.stock_name LIKE CONCAT('%', @target_stock01, '%')  -- 파라미터: 검색어
-      OR s.stock_code LIKE CONCAT('%', @target_stock01, '%')
+    OR s.stock_code LIKE CONCAT('%', @target_stock01, '%')
 ORDER BY s.stock_name
 LIMIT 20;
 
@@ -27,8 +27,8 @@ SET @s_code01 = 'RTX';
 INSERT INTO watchlist (user_no, stock_code)
 SELECT @u_no01, @s_code01
 WHERE (SELECT COUNT(*) FROM watchlist WHERE user_no = @u_no01) < 50 
-  AND EXISTS (SELECT 1 FROM stocks WHERE stock_code = @s_code01)
-  AND NOT EXISTS (SELECT 1 FROM watchlist WHERE user_no = @u_no01 AND stock_code = @s_code01);
+    AND EXISTS (SELECT 1 FROM stocks WHERE stock_code = @s_code01)
+    AND NOT EXISTS (SELECT 1 FROM watchlist WHERE user_no = @u_no01 AND stock_code = @s_code01);
 
 SELECT *
 FROM watchlist
@@ -42,7 +42,7 @@ SET @u_no02 = 1;
 SET @s_code02 = 'RTX';
 DELETE FROM watchlist
 WHERE user_no = @u_no02  -- 파라미터: 사용자번호
-  AND stock_code = @s_code02;  -- 파라미터: 종목코드
+    AND stock_code = @s_code02;  -- 파라미터: 종목코드
 
 SELECT *
 FROM watchlist
@@ -54,11 +54,11 @@ WHERE user_no = @u_no02;
 -- ============================================
 SET @u_no03 = 4; -- 국장을 좋아하는 애국인
 SELECT w.watchlist_id,
-		 w.stock_code,
-		 s.stock_name,
-		 sp.current_price,
-		 sp.change_rate,
-		 w.added_at
+    w.stock_code,
+    s.stock_name,
+    sp.current_price,
+    sp.change_rate,
+    w.added_at
 FROM watchlist w
 INNER JOIN stocks s ON w.stock_code = s.stock_code
 INNER JOIN stock_price sp ON s.stock_code = sp.stock_code
@@ -245,11 +245,11 @@ WHERE a.account_id = @acc_id  -- 파라미터: 계좌ID
 SET @u_no06 = 1;
 -- 1485000 + 1350000 + 2986000 + 1493000 = 7,314,000
 SELECT COUNT(*) AS trade_count,
-		 SUM(total_amount) AS total_amount
+    SUM(total_amount) AS total_amount
 FROM trades
 WHERE user_no = @u_no06
-  AND YEAR(trade_time) = YEAR(CURDATE())
-  AND MONTH(trade_time) = MONTH(CURDATE());
+    AND YEAR(trade_time) = YEAR(CURDATE())
+    AND MONTH(trade_time) = MONTH(CURDATE());
 
 -- ============================================
 -- 9. STOCK_009 (평균 매수 및 매도가 조회)
@@ -345,16 +345,16 @@ SET @start_time = '2025-12-01 00:00:00'; -- 12월 초부터
 SET @end_time   = '2026-01-20 23:59:59'; -- 오늘 밤까지
 -- 기간 지정 조회
 SELECT t.trade_id,
-       s.stock_code,
-	    s.stock_name,
-	    t.trade_type,
-       t.quantity,
-   	 t.price,
-	    t.total_amount,
-	    t.trade_time
+    s.stock_code,
+    s.stock_name,
+    t.trade_type,
+    t.quantity,
+    t.price,
+    t.total_amount,
+    t.trade_time
 FROM trades t
 JOIN stocks s ON t.stock_code = s.stock_code
 WHERE t.account_id = @target_acc
-  AND t.trade_time BETWEEN @start_time AND @end_time  -- 파라미터: 시작일, 종료일
+    AND t.trade_time BETWEEN @start_time AND @end_time  -- 파라미터: 시작일, 종료일
 ORDER BY t.trade_time DESC
 LIMIT 100;
