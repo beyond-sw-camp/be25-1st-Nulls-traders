@@ -59,9 +59,12 @@
 * * *
 
 ## 3. 🚙기술스택
-| MariaDB | ERDCloud | Linux |
-| --- | --- | --- |
-|<img src="img/Mariadb.jpg" width="100">|<img src="img/erdCloud.png" width="100">|<img src="img/Linux.png" width="100">|
+<img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
+<img src="https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white" alt="MariaDB">
+<img src="https://img.shields.io/badge/ERDCloud-2C2C2C?style=for-the-badge" alt="ERDCloud">
+
+
+
 * * *
 ## 4. 🐻요구사항 명세서
 <img src="img/img_excel/요구사항명세서1.png" /> <img src="img/img_excel/요구사항명세서2.png" /><img src="img/img_excel/요구사항명세서3.png" /><img src="img/img_excel/요구사항명세서4.png" />
