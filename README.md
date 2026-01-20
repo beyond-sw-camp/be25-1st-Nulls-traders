@@ -1063,19 +1063,14 @@ DELIMITER ;
 -- 7. STOCK_007 (주문 가능 수량 조회)
 -- 현재 예수금으로 매수 가능한 최대 수량 조회
 -- ============================================
-SELECT account_id, user_no
-FROM `accounts`;
-
--- SET @acc_id = 1;         -- 민정기 계좌 (850만7천원)
--- SET @s_code = '005930';  -- 삼성전자 149300원: 56개까지 추가구매 가능
-
 SET @acc_id = 4;            -- 방지혁 계좌(300만원) 
 SET @s_code = '000660';     -- SK하이닉스 764,000원: 3개까지 추가구매 가능
 
 SELECT 
     a.deposit,
+    a.margin,
     sp.current_price,
-    FLOOR(a.deposit / sp.current_price) AS max_quantity
+    FLOOR((a.deposit - a.margin)/ sp.current_price) AS max_quantity
 FROM accounts a
 CROSS JOIN stock_price sp
 -- 종목 가격과 계좌 잔액은 직접적인 연결 고리가 없어서 CROSS JOIN
