@@ -53,10 +53,10 @@
 |<img src="img/Mariadb.jpg" width="100">|<img src="img/erdCloud.png" width="100">|<img src="img/Linux.png" width="100">|
 * * *
 ## 4. 🐻요구사항 명세서
-(사진 추가)
+<img src="img/img_excel/요구사항명세서1.png" /> <img src="img/img_excel/요구사항명세서2.png" /><img src="img/img_excel/요구사항명세서3.png" /><img src="img/img_excel/요구사항명세서4.png" />
 * * *
 ## 5. 🐧테이블 명세서
-(사진 추가)
+<img src="img/img_excel/1_테이블 명세서.png" /><img src="img/img_excel/2_테이블 명세서.png" /><img src="img/img_excel/3_테이블 명세서.png" /><img src="img/img_excel/4_테이블 명세서.png" /><img src="img/img_excel/5_테이블 명세서.png" /><img src="img/img_excel/6_테이블 명세서.png" /><img src="img/img_excel/7_테이블 명세서.png" /><img src="img/img_excel/8_테이블 명세서.png" /><img src="img/img_excel/9_테이블 명세서.png" /><img src="img/img_excel/10_테이블 명세서.png" /><img src="img/img_excel/11_테이블 명세서.png" /><img src="img/img_excel/12_테이블 명세서.png" />
 * * *
 ## 6. 🐣ERD
 (사진 추가)
