@@ -1609,9 +1609,9 @@ WHERE stock_code = '005930';
 시나리오 매도 결과
 <img src="img/DML/stock/STOCK_006_4-시나리오1(매도결과-계좌).png">	
 회원 가입
-<img src="img/DML/user/USER_001-1).png">
+<img src="img/DML/user/USER_001-1.png">
 ID, 비밀번호 재 설정
-<img src="img/DML/user/USER_005).png">
+<img src="img/DML/user/USER_005.png">
 	
 </div>
 </details>
