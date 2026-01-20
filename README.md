@@ -946,6 +946,7 @@ BEGIN
     -- 내부 변수 선언
     DECLARE v_current_price DECIMAL(15,2);
     DECLARE v_deposit BIGINT;
+    DECLARE v_margin BIGINT;  -- 증거금 변수 추가
     DECLARE v_total_amount DECIMAL(20,2);
 
     -- 1. 현재가 조회
@@ -953,8 +954,8 @@ BEGIN
     FROM stock_price
     WHERE stock_code = p_stock_code;
 
-    -- 2. 예수금 확인
-    SELECT deposit INTO v_deposit
+    -- 2. 예수금 및 증거금 확인
+    SELECT deposit, margin INTO v_deposit, v_margin
     FROM accounts
     WHERE account_id = p_account_id;
 
@@ -962,7 +963,7 @@ BEGIN
     SET v_total_amount = v_current_price * p_quantity;
 
     -- 4. 트랜잭션 및 유효성 검사 시작
-    IF v_deposit >= v_total_amount THEN
+    IF (v_deposit - v_margin) >= v_total_amount THEN
         START TRANSACTION;
         
         -- 5. 체결 내역 저장
