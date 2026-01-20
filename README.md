@@ -1590,11 +1590,29 @@ WHERE stock_code = '005930';
 ### 7.3 🏐Test Case
 
 <details>
-<summary>테스트 케이스</summary>
+<summary>시나리오 테스트 케이스</summary>
 <div markdown="1">
-
-토글 안에 넣을 이미지나 글
-
+계좌 생성
+<img src="img/DML/accounts/ACCT_001.png">
+관심종목 조회
+<img src="img/DML/accounts/ACCT_004.png">
+관리자 로그인
+<img src="img/DML/admin/ADMIN_001.png">
+공지사항 및 알림
+<img src="img/DML/admin/ADMIN_004.png">
+댓글작성 
+<img src="img/DML/board/COMMENT_001.png">
+좋아요 증가 및 삭제된 게시물 좋아요 확인
+<img src="img/DML/board/LIKE_001.png">
+주식 거래 하기전 종목 검색
+<img src="img/DML/stock/STOCK_001.png">
+시나리오 매도 결과
+<img src="img/DML/stock/STOCK_006_4-시나리오1(매도결과-계좌).png">	
+회원 가입
+<img src="img/DML/user/USER_001-1).png">
+ID, 비밀번호 재 설정
+<img src="img/DML/user/USER_005).png">
+	
 </div>
 </details>
 
