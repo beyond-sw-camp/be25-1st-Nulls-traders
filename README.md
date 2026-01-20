@@ -57,9 +57,12 @@
 * * *
 ## 5. 🐧테이블 명세서
 <img src="img/img_excel/1_테이블 명세서.png" /><img src="img/img_excel/4_테이블 명세서.png" /><img src="img/img_excel/6_테이블 명세서.png" /><img src="img/img_excel/7_테이블 명세서.png" /><img src="img/img_excel/8_테이블 명세서.png" /><img src="img/img_excel/9_테이블 명세서.png" /><img src="img/img_excel/11_테이블 명세서.png" />
+
 * * *
+
 ## 6. 🐣ERD
 <img src="img/ERD.png" />
+
 * * *
 
 ## 7. 🎃SQL
