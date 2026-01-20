@@ -783,7 +783,78 @@ CREATE TABLE `Portfolio_analysis` (
 <summary>User</summary>
 <div markdown="1">
 
-토글 안에 넣을 이미지나 글
+```
+-- 회원가입 (요구사항 코드 : user_001)
+INSERT INTO `users` VALUES
+(7, '신규이름', '신규휴대전화', '신규이메일', 1, '정상', NOW());
+```
+```
+-- 로그인 (요구사항 코드 : user_002)
+-- 방법1. ID 및 ID비밀번호 사용
+SELECT users.user_name AS '이름',
+       login.user_id AS 'ID',
+       login.user_pw AS 'ID비밀번호해시'
+FROM users
+     INNER JOIN login ON users.user_no = login.user_no
+WHERE users.user_status LIKE '정상'
+  AND login.user_id = '신규ID' 
+  AND login.user_pw = '신규ID비밀번호해시';
+
+-- 방법2. 간편비밀번호 사용
+SELECT users.user_name AS '이름',
+       login.user_pin AS '간편비밀번호해시'
+FROM users
+     INNER JOIN login ON users.user_no = login.user_no
+WHERE users.user_status LIKE '정상' 
+  AND login.user_pin = '신규간편비밀번호해시';
+```
+```
+-- ID 찾기 (요구사항 코드 : user_003)
+DROP PROCEDURE IF EXISTS find_user_id;
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE find_user_id(
+   IN f_user_name VARCHAR(15),
+	IN f_user_mobile CHAR(11),
+	IN f_user_email VARCHAR(255)
+)
+BEGIN
+	SELECT login.user_id AS 'ID' 
+	FROM login
+     	  INNER JOIN users ON login.user_no = users.user_no
+   WHERE users.user_name = f_user_name
+     AND users.user_mobile = f_user_mobile
+     AND users.user_email = f_user_email; 	
+END $$
+DELIMITER ;
+
+CALL find_user_id('신규이름', '신규휴대전화', '신규이메일');
+```
+```
+-- ID비밀번호 재설정 (요구사항 코드 : user_004)
+UPDATE login
+INNER JOIN users ON login.user_no = users.user_no
+SET login.user_pw = '비밀번호재설정'
+WHERE users.user_status LIKE '정상' 
+  AND login.user_id = '신규ID';
+
+SELECT user_no AS '사용자고유번호',
+       user_id AS 'ID',
+       user_pw AS 'ID비밀번호해시' 
+FROM login;
+```
+```
+-- 회원 탈퇴 (요구사항 코드 : user_005)
+UPDATE users
+INNER JOIN login ON users.user_no = login.user_no
+SET users.user_status = '탈퇴'
+WHERE login.user_id = '신규ID';
+
+SELECT user_no AS '사용자고유번호',
+       user_name AS '이름',
+       user_status AS '상태' 
+FROM users;
+
+```
 
 </div>
 </details>
@@ -792,16 +863,325 @@ CREATE TABLE `Portfolio_analysis` (
 <summary>Stock</summary>
 <div markdown="1">
 
-토글 안에 넣을 이미지나 글
+```
+-- ============================================
+-- 1. STOCK_001 (종목 검색)
+-- 사용자가 종목명 또는 종목코드로 부분 일치 검색
+-- ============================================
+SET @target_stock01 = '05'; -- 삼성전자, 현대차
+SELECT s.stock_code,
+		 s.stock_name,
+		 s.market_type,
+		 sp.current_price,
+		 sp.prev_close,
+		 sp.change_amount,
+		 sp.change_rate
+FROM stocks s
+INNER JOIN stock_price sp ON s.stock_code = sp.stock_code
+WHERE s.stock_name LIKE CONCAT('%', @target_stock01, '%')  -- 파라미터: 검색어
+      OR s.stock_code LIKE CONCAT('%', @target_stock01, '%')
+ORDER BY s.stock_name
+LIMIT 20;
+```
+```
+-- ============================================
+-- 2. STOCK_002 (관심종목 등록)
+-- ============================================
+-- 테스트 시나리오: 1번 유저가 'RTX' 종목을 등록하려고 함
+SET @u_no01 = 1;
+SET @s_code01 = 'RTX';
 
-</div>
-</details>
+INSERT INTO watchlist (user_no, stock_code)
+SELECT @u_no01, @s_code01
+WHERE (SELECT COUNT(*) FROM watchlist WHERE user_no = @u_no01) < 50 
+  AND EXISTS (SELECT 1 FROM stocks WHERE stock_code = @s_code01)
+  AND NOT EXISTS (SELECT 1 FROM watchlist WHERE user_no = @u_no01 AND stock_code = @s_code01);
+```
+```
+-- ============================================
+-- 3. STOCK_003 (관심종목 삭제)
+-- ============================================
+-- 테스트 시나리오: 1번 유저가 'RTX' 종목을 삭제하려고 함
+SET @u_no02 = 1;
+SET @s_code02 = 'RTX';
+DELETE FROM watchlist
+WHERE user_no = @u_no02  -- 파라미터: 사용자번호
+  AND stock_code = @s_code02;  -- 파라미터: 종목코드
+```
+```
+-- ============================================
+-- 4. STOCK_004 (관심종목 조회)
+-- 사용자의 관심종목 목록 조회
+-- ============================================
+SET @u_no03 = 4; -- 국장을 좋아하는 애국인
+SELECT w.watchlist_id,
+		 w.stock_code,
+		 s.stock_name,
+		 sp.current_price,
+		 sp.change_rate,
+		 w.added_at
+FROM watchlist w
+INNER JOIN stocks s ON w.stock_code = s.stock_code
+INNER JOIN stock_price sp ON s.stock_code = sp.stock_code
+WHERE w.user_no = @u_no03  -- 파라미터: 사용자번호
+ORDER BY w.added_at DESC;
+```
+```
 
-<details>
-<summary>Account</summary>
-<div markdown="1">
+-- ============================================
+-- 5. STOCK_005 (매수 주문)
+-- ============================================
+DELIMITER $$
 
-토글 안에 넣을 이미지나 글
+CREATE OR REPLACE PROCEDURE sp_buy_stock(
+    IN p_user_no INT,       -- 사용자 번호
+    IN p_account_id BIGINT, -- 계좌 ID
+    IN p_stock_code VARCHAR(10), -- 종목 코드
+    IN p_quantity INT       -- 매수 수량
+)
+BEGIN
+    -- 내부 변수 선언
+    DECLARE v_current_price DECIMAL(15,2);
+    DECLARE v_deposit BIGINT;
+    DECLARE v_total_amount DECIMAL(20,2);
+
+    -- 1. 현재가 조회
+    SELECT current_price INTO v_current_price
+    FROM stock_price
+    WHERE stock_code = p_stock_code;
+
+    -- 2. 예수금 확인
+    SELECT deposit INTO v_deposit
+    FROM accounts
+    WHERE account_id = p_account_id;
+
+    -- 3. 체결금액 계산
+    SET v_total_amount = v_current_price * p_quantity;
+
+    -- 4. 트랜잭션 및 유효성 검사 시작
+    IF v_deposit >= v_total_amount THEN
+        START TRANSACTION;
+        
+        -- 5. 체결 내역 저장
+        INSERT INTO trades (user_no, stock_code, account_id, trade_type, quantity, price, total_amount)
+        VALUES (p_user_no, p_stock_code, p_account_id, 'BUY', p_quantity, v_current_price, v_total_amount);
+        
+        -- 6. 예수금 차감
+        UPDATE accounts
+        SET deposit = deposit - v_total_amount
+        WHERE account_id = p_account_id;
+        
+        -- 7. 포트폴리오 업데이트 (이미 있으면 수량/평단가 갱신, 없으면 추가)
+        INSERT INTO portfolios (user_no, stock_code, account_id, quantity, avg_price)
+        VALUES (p_user_no, p_stock_code, p_account_id, p_quantity, v_current_price)
+        ON DUPLICATE KEY UPDATE
+            avg_price = ((avg_price * quantity) + (v_current_price * p_quantity)) / (quantity + p_quantity),
+            quantity = quantity + p_quantity,
+            updated_at = CURRENT_TIMESTAMP;
+        
+        COMMIT;
+        SELECT '매수 체결 완료' AS result_msg;
+    ELSE
+        -- 예수금 부족 시 에러 발생 및 롤백
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = '예수금이 부족합니다. (잔액 부족)';
+    END IF;
+END $$
+DELIMITER ;
+```
+```
+-- ============================================
+-- 6. STOCK_006 (매도 주문)
+-- ============================================
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE sp_sell_stock(
+    IN p_user_no INT,           -- 사용자 번호
+    IN p_account_id BIGINT,     -- 계좌 ID
+    IN p_stock_code VARCHAR(10),-- 종목 코드
+    IN p_quantity INT           -- 매도 수량
+)
+BEGIN
+    -- 내부 변수 선언
+    DECLARE v_current_price DECIMAL(15,2);
+    DECLARE v_owned_quantity INT DEFAULT 0;
+    DECLARE v_total_amount DECIMAL(20,2);
+
+    -- 1. 현재가 조회
+    SELECT current_price INTO v_current_price
+    FROM stock_price
+    WHERE stock_code = p_stock_code;
+
+    -- 2. 현재 보유 수량 조회 (해당 계좌의 해당 종목)
+    SELECT quantity INTO v_owned_quantity
+    FROM portfolios
+    WHERE account_id = p_account_id AND stock_code = p_stock_code;
+
+    -- 3. 체결금액 계산
+    SET v_total_amount = v_current_price * p_quantity;
+
+    -- 4. 유효성 검사 및 트랜잭션 시작
+    IF v_owned_quantity IS NOT NULL AND v_owned_quantity >= p_quantity THEN
+        START TRANSACTION;
+        
+        -- 5. 체결 내역 저장 (SELL 타입)
+        INSERT INTO trades (user_no, stock_code, account_id, trade_type, quantity, price, total_amount)
+        VALUES (p_user_no, p_stock_code, p_account_id, 'SELL', p_quantity, v_current_price, v_total_amount);
+        
+        -- 6. 예수금 증가 (매도 대금 입금)
+        UPDATE accounts
+        SET deposit = deposit + v_total_amount
+        WHERE account_id = p_account_id;
+        
+        -- 7. 포트폴리오 차감
+        UPDATE portfolios
+        SET quantity = quantity - p_quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = p_account_id AND stock_code = p_stock_code;
+        
+        -- 8. 수량이 0이 되면 포트폴리오에서 삭제
+        DELETE FROM portfolios
+        WHERE account_id = p_account_id 
+          AND stock_code = p_stock_code 
+          AND quantity <= 0;
+        
+        COMMIT;
+        SELECT '매도 체결 완료' AS result_msg;
+    ELSE
+        -- 보유 수량이 부족하거나 종목이 없는 경우
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '보유 수량이 부족하거나 미보유하여 매도할 수 없습니다.';
+    END IF;
+END $$
+DELIMITER ;
+```
+```
+-- ============================================
+-- 7. STOCK_007 (주문 가능 수량 조회)
+-- 현재 예수금으로 매수 가능한 최대 수량 조회
+-- ============================================
+SELECT account_id, user_no
+FROM `accounts`;
+
+-- SET @acc_id = 1;         -- 민정기 계좌 (850만7천원)
+-- SET @s_code = '005930';  -- 삼성전자 149300원: 56개까지 추가구매 가능
+
+SET @acc_id = 4;            -- 방지혁 계좌(300만원) 
+SET @s_code = '000660';     -- SK하이닉스 764,000원: 3개까지 추가구매 가능
+
+SELECT 
+    a.deposit,
+    sp.current_price,
+    FLOOR(a.deposit / sp.current_price) AS max_quantity
+FROM accounts a
+CROSS JOIN stock_price sp
+-- 종목 가격과 계좌 잔액은 직접적인 연결 고리가 없어서 CROSS JOIN
+WHERE a.account_id = @acc_id  -- 파라미터: 계좌ID
+  AND sp.stock_code = @s_code;  -- 파라미터: 종목코드
+```
+```
+-- ============================================
+-- 8. STOCK_008 (거래 통계조회)
+-- 사용자의 이번달 총 거래횟수 및 금액 조회
+-- ============================================
+SET @u_no06 = 1;
+-- 1485000 + 1350000 + 2986000 + 1493000 = 7,314,000
+SELECT COUNT(*) AS trade_count,
+		 SUM(total_amount) AS total_amount
+FROM trades
+WHERE user_no = @u_no06
+  AND YEAR(trade_time) = YEAR(CURDATE())
+  AND MONTH(trade_time) = MONTH(CURDATE());
+```
+```
+-- ============================================
+-- 9. STOCK_009 (평균 매수 및 매도가 조회)
+-- 사용자의 종목별 평균 매수가격, 평균 매도가격
+-- ============================================
+SET @target_user = 1;
+SELECT 
+    s.stock_code,
+    s.stock_name,
+    AVG(CASE WHEN t.trade_type = 'BUY' THEN t.price ELSE NULL END) AS avg_buy_price,
+    AVG(CASE WHEN t.trade_type = 'SELL' THEN t.price ELSE NULL END) AS avg_sell_price,
+    SUM(CASE WHEN t.trade_type = 'BUY' THEN t.quantity ELSE 0 END) AS total_bought,
+    SUM(CASE WHEN t.trade_type = 'SELL' THEN t.quantity ELSE 0 END) AS total_sold
+FROM trades t
+JOIN stocks s ON t.stock_code = s.stock_code
+WHERE t.user_no = @target_user  -- 파라미터: 사용자번호
+GROUP BY s.stock_code, s.stock_name
+ORDER BY s.stock_name;
+```
+```
+-- ============================================
+-- 10. STOCK_010 (손익 순위 정렬)
+-- 보유종목을 수익률 기준으로 정렬
+-- ============================================
+SET @target_acc = 2;
+SELECT 
+    p.portfolio_id,
+    s.stock_code,
+    s.stock_name,
+    p.quantity,
+    p.avg_price,
+    sp.current_price,
+    (sp.current_price * p.quantity) AS eval_amount,
+    ((sp.current_price - p.avg_price) * p.quantity) AS profit_loss,
+    (((sp.current_price - p.avg_price) / p.avg_price) * 100) AS profit_rate
+FROM portfolios p
+JOIN stocks s ON p.stock_code = s.stock_code
+JOIN stock_price sp ON s.stock_code = sp.stock_code
+WHERE p.account_id = @target_acc  -- 파라미터: 계좌ID
+ORDER BY profit_rate DESC;  -- 수익률 높은 순
+```
+```
+-- ============================================
+-- 11. STOCK_011 (계좌 요약 조회)
+-- 계좌 전체 요약 정보
+-- ============================================
+-- SET @target_acc = 1; -- 부자
+SET @target_acc = 5; -- 거지
+
+SELECT 
+    a.account_id,
+    a.deposit AS deposit,
+    COALESCE(SUM(p.avg_price * p.quantity), 0) AS total_buy_amount,
+    COALESCE(SUM(sp.current_price * p.quantity), 0) AS total_eval_amount,
+    COALESCE(SUM((sp.current_price - p.avg_price) * p.quantity), 0) AS total_profit_loss,
+    CASE 
+        WHEN SUM(p.avg_price * p.quantity) > 0 
+        THEN (SUM((sp.current_price - p.avg_price) * p.quantity) / SUM(p.avg_price * p.quantity) * 100)
+        ELSE 0 
+    END AS total_profit_rate
+FROM accounts a
+LEFT JOIN portfolios p ON a.account_id = p.account_id
+LEFT JOIN stock_price sp ON p.stock_code = sp. stock_code
+WHERE a.account_id = @target_acc  -- 파라미터: 계좌ID
+GROUP BY a.account_id, a.deposit;
+```
+```
+-- ============================================
+-- 13. STOCK_013 (체결내역 조회)
+-- 지정 기간 내 체결 내역 조회
+-- ============================================
+SET @target_acc = 1;
+SET @start_time = '2025-12-01 00:00:00'; -- 12월 초부터
+SET @end_time   = '2026-01-20 23:59:59'; -- 오늘 밤까지
+-- 기간 지정 조회
+SELECT t.trade_id,
+       s.stock_code,
+	    s.stock_name,
+	    t.trade_type,
+       t.quantity,
+   	 t.price,
+	    t.total_amount,
+	    t.trade_time
+FROM trades t
+JOIN stocks s ON t.stock_code = s.stock_code
+WHERE t.account_id = @target_acc
+  AND t.trade_time BETWEEN @start_time AND @end_time  -- 파라미터: 시작일, 종료일
+ORDER BY t.trade_time DESC
+LIMIT 100;
+```
 
 </div>
 </details>
@@ -810,7 +1190,325 @@ CREATE TABLE `Portfolio_analysis` (
 <summary>Board</summary>
 <div markdown="1">
 
-토글 안에 넣을 이미지나 글
+```
+INSERT INTO posts (user_no, title, content, is_admin_post, post_like, post_dislike) 
+VALUES 
+(1, '시스템 점검  안내', '1시 ~ 3시 점검 시간입니다..', 'admin', 3, 0),
+(2, '삼성전자 전망', '향후 주가 어떻게 보시나요?', 'user', 4, 0);
+```
+```
+-- notification
+INSERT INTO notification (notification_type, message)
+VALUES
+('POST', '새 게시글이 등록되었습니다.'),
+('COMMENT', '게시글에 새 댓글이 달렸습니다.');
+
+```
+```
+-- user_notification 
+INSERT INTO user_notification (notification_id, user_no, is_read, read_at) 
+VALUES 
+(1, 1, FALSE, NULL),
+(2, 2, TRUE, NOW());
+```
+```
+-- 게시글 수정 (제목 + 내용) 
+UPDATE posts 
+SET title = '삼성전자 전망 (업데이트)', 
+	 content = '주가 동향 알고 싶습니다.', 
+	 updated_at = CURRENT_TIMESTAMP 
+WHERE post_id = 2;
+
+SELECT title,
+		 content,
+		 updated_at
+FROM posts
+WHERE post_id = 2;
+```
+```
+-- 게시글 좋아요 증가 및 게시글 삭제 확인 조회
+UPDATE posts
+SET
+  post_like = CASE
+    WHEN post_id = 1 THEN post_like + 1
+    ELSE post_like
+  END,
+  post_del = CASE
+    WHEN post_id = 2 THEN 1
+    ELSE post_del
+  END
+WHERE post_id IN (1, 2);
+
+SELECT p.title,
+		 p.post_like,
+		 p.post_del
+FROM posts p;
+```
+```
+-- 댓글 내용 수정 
+UPDATE comments 
+SET content = '답변 감사합니다.', 
+updated_at = CURRENT_TIMESTAMP 
+WHERE comment_id = 2;
+
+SELECT u.user_name,
+		 c.content,
+		 c.updated_at
+FROM comments c
+INNER JOIN users u ON u.user_no = c.user_no
+WHERE comment_id = 2;
+```
+```
+-- 댓글 좋아요 증가 및 댓글 삭제
+UPDATE comments
+SET
+  comment_like = CASE
+    WHEN comment_id = 1 THEN comment_like + 1
+    ELSE comment_like
+  END,
+  comment_del = CASE
+    WHEN comment_id = 2 THEN 1
+    ELSE comment_del
+  END
+WHERE comment_id IN (1, 2);
+
+SELECT u.user_name,
+		 comment_id,
+  		 comment_like,
+  		 comment_del
+FROM comments c
+INNER JOIN users u ON u.user_no = c.user_no;
+```
+```
+
+-- 특정 알림 읽음 처리 
+UPDATE user_notification 
+SET is_read = TRUE, 
+	 read_at = NOW() 
+WHERE user_no = 1 AND notification_id = 1;
+
+-- 조회
+SELECT u.user_name,
+		 un.is_read,
+		 un.read_at
+FROM user_notification un
+INNER JOIN users u ON u.user_no = un.user_no
+WHERE un.user_no = 1 AND un.notification_id = 1;
+```
+
+</div>
+</details>
+
+<details>
+<summary>Account</summary>
+<div markdown="1">
+
+```
+-- 계좌 관련 DML
+-- ========================================== 
+-- 1. 증권 계좌 개설 (ACCT-001)
+-- ==========================================
+-- 민정기(user_no=1) 계좌 개설
+
+INSERT INTO accounts (
+    user_no, 
+    account_number, 
+    account_name, 
+    deposit, 
+    margin, 
+    status
+)
+VALUES (
+    1,
+    CONCAT(
+        LPAD(YEAR(NOW()) MOD 100, 2, '0'),
+        LPAD(1, 8, '0'),
+        LPAD(
+            (SELECT COALESCE(COUNT(*), 0) + 1 
+             FROM accounts 
+             WHERE user_no = 1),
+            6, '0'
+        )
+    ),
+    '민정기 위탁계좌',
+    0,
+    0,
+    '정상'
+);
+```
+
+```
+-- ==========================================
+-- 2. 증권 계좌 정보 조회 (ACCT-002)
+-- ==========================================
+
+SET @test_account_id= 2;
+
+SELECT a.account_id AS '계좌 ID',
+       a.user_no AS '사용자 번호',
+       a.account_number AS '계좌번호',
+       a.account_name AS '계좌명',
+       a.deposit AS '예수금',
+       a.margin AS '증거금',
+       a.status AS '계좌상태',
+       (a.deposit - a.margin) AS '주문가능금액',
+       (a.deposit - a.margin) AS '출금가능금액',
+       COALESCE(SUM(p.quantity * sp.current_price), 0) AS '보유주식평가액',
+       (a.deposit + COALESCE(SUM(p.quantity * sp.current_price), 0)) AS '총평가금액',
+       a.last_transaction_at AS '최종거래일시'
+FROM accounts a
+LEFT JOIN portfolios p ON a.account_id = p.account_id
+LEFT JOIN stock_price sp ON p.stock_code = sp.stock_code
+WHERE a.account_id = @test_account_id
+GROUP BY a.account_id;
+```
+```
+
+-- ==========================================
+-- 3. 계좌 상태 변경 (ACCT-003)
+-- ==========================================
+
+SET @test_account_id= 1;
+
+-- 3-1. 정상 → 정지 (관리자 권한) 
+UPDATE accounts
+SET status = '정지'
+WHERE account_id = @test_account_id
+  AND status = '정상';
+
+-- 3-2. 정상 → 휴면 (365일 미사용 시 자동)
+-- 테스트용: last_transaction_at을 1년 전으로 먼저 설정
+UPDATE accounts
+SET last_transaction_at = DATE_SUB(NOW(), INTERVAL 366 DAY)
+WHERE account_id = @test_account_id;
+
+UPDATE accounts
+SET status = '휴면'
+WHERE status = '정상'
+  AND DATEDIFF(CURRENT_DATE, last_transaction_at) >= 365;
+
+
+-- 3-4. 정상 → 해지 
+UPDATE accounts
+SET status = '해지'
+WHERE account_id = @test_account_id
+  AND status = '정상'
+  AND deposit = 0
+  AND margin = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM portfolios 
+      WHERE account_id = @test_account_id
+        AND quantity > 0
+  );
+```
+```
+
+-- ==========================================
+-- 4. 유저 계좌 목록 조회 (ACCT-004)
+-- ==========================================
+
+SET @test_user_no = 1;
+
+SELECT a.account_id AS '계좌 ID',
+       a.account_number AS '계좌번호',
+       a.account_name AS '계좌명',
+       a.deposit AS '예수금',
+       a.margin AS '증거금',
+       ROUND(COALESCE(SUM(p.quantity * sp.current_price), 0), 0) AS '보유주식평가액',
+       ROUND(a.deposit + COALESCE(SUM(p.quantity * sp.current_price), 0), 0) AS '총평가금액',  -- ROUND 추가, 0 추가
+       TRUNCATE(COALESCE(SUM(p.quantity * p.avg_price), 0), 0) AS '총매입금액',  -- 0 추가
+       COALESCE(
+		 		CASE 
+               WHEN SUM(p.quantity * p.avg_price) > 0 THEN
+                    ROUND(((SUM(p.quantity * sp.current_price) - SUM(p.quantity * p.avg_price)) / SUM(p.quantity * p.avg_price) * 100), 2)
+               ELSE 0
+         	END, 0) AS '손익률(%)',
+       ROUND(COALESCE((SUM(p.quantity * sp.current_price) - SUM(p.quantity * p.avg_price)), 0), 0) AS '평가손익',
+       a.status AS '계좌상태',
+       a.last_transaction_at AS '최종거래일시'
+FROM accounts a
+LEFT JOIN portfolios p ON a.account_id = p.account_id
+LEFT JOIN stock_price sp ON p.stock_code = sp.stock_code
+WHERE a.user_no = @test_user_no
+GROUP BY a.account_id
+ORDER BY a.last_transaction_at DESC;
+```
+```
+
+-- ==========================================
+-- 5. 증권 계좌 입금 (TRANS_001)
+-- ==========================================
+
+SET @test_account_id= 7;
+SET @test_amount = 10000000;
+
+START TRANSACTION;
+
+UPDATE accounts
+SET deposit = deposit + @test_amount,
+    last_transaction_at = CURRENT_TIMESTAMP
+WHERE account_id = @test_account_id;
+
+INSERT INTO deposit_withdraw_history (account_id, transaction_type, amount, balance_after)
+VALUES (@test_account_id, '입금', @test_amount, (SELECT deposit FROM accounts WHERE account_id = @test_account_id));
+
+COMMIT;
+```
+```
+
+-- ==========================================
+-- 6. 증권 계좌 출금 (TRANS_002)
+-- ==========================================
+
+SET @test_account_id = 7;
+SET @test_amount = 10000000;
+
+START TRANSACTION;
+
+SELECT (deposit - margin) AS available_amount
+FROM accounts
+WHERE account_id = @test_account_id
+  AND (deposit - margin) >= @test_amount
+  AND status = '정상'
+FOR UPDATE;
+
+UPDATE accounts
+SET deposit = deposit - @test_amount,
+    last_transaction_at = CURRENT_TIMESTAMP
+WHERE account_id = @test_account_id;
+
+INSERT INTO deposit_withdraw_history (account_id, transaction_type, amount, balance_after)
+VALUES (@test_account_id, '출금', @test_amount, (SELECT deposit FROM accounts WHERE account_id = @test_account_id));
+
+COMMIT;
+```
+```
+
+-- ==========================================
+-- 7. 입출금 내역 조회 (TRANS_003)
+-- ==========================================
+
+SET @test_account_id = 7;
+
+SELECT transaction_id AS '거래번호',
+       transaction_type AS '거래유형',
+       amount AS '금액',
+       balance_after AS '거래 후 잔액',
+       transaction_at AS '거래일시'
+FROM deposit_withdraw_history
+WHERE account_id = @test_account_id
+  AND transaction_at >= DATE_SUB(CURRENT_DATE, INTERVAL 3 MONTH)
+ORDER BY transaction_at DESC;
+```
+
+</div>
+</details>
+
+<details>
+<summary>Loan</summary>
+<div markdown="1">
+
+
 
 </div>
 </details>
@@ -819,7 +1517,67 @@ CREATE TABLE `Portfolio_analysis` (
 <summary>Chat Bot</summary>
 <div markdown="1">
 
-토글 안에 넣을 이미지나 글
+```
+-- 사용자의 질문 입력 (챗봇)
+INSERT INTO `Chatbot` (`Message`, `Role`, `user_id`) 
+VALUES ('현재 내 삼성전자 주식 비중이 적절한지 분석해줘.', 'User', 'user_01');
+
+-- 챗봇의 답변 입력 (위 질문에 대한 응답, Conversation_id는 자동 생성됨)
+INSERT INTO `Chatbot` (`Message`, `Role`, `user_id`) 
+VALUES ('네, 포트폴리오를 분석한 결과 리스크 점수는 75점입니다.', 'Bot', 'user_01');
+
+-- 새로운 뉴스 기사 추가 (뉴스)
+INSERT INTO `News` (`Title`, `Content`, `Publisher`, `URL`, `Published_at`, `Hash`, `stock_code`)
+VALUES (
+    '삼성전자, 차세대 반도체 공정 발표', 
+    '삼성전자가 오늘 새로운 2나노 공정 로드맵을 발표했습니다...', 
+    '경제일보', 
+    'https://news.example.com/samsung/123', 
+    '2026-01-19', 
+    'a1b2c3d4e5f6g7h8i9j0', 
+    '005930'
+);
+```
+```
+-- 특정 뉴스(News_id=1)에 대한 요약 결과 저장 (뉴스 요약)
+INSERT INTO `news_summary` (`news_summary_id`, `Converstaion_id`, `News_id`, `summary`, `sentiment`, `news_url`)
+VALUES (
+    1, 
+    1, -- Chatbot 테이블의 Conversation_id 참조
+    1, -- News 테이블의 News_id 참조
+    '삼성전자가 차세대 반도체 시장 주도권을 위해 2나노 공정 계획을 구체화함.', 
+    'POSITIVE', 
+    'https://news.example.com/samsung/123'
+);
+```
+```
+-- 사용자 포트폴리오 분석 결과 저장 (포트폴리오 저장)
+INSERT INTO `portfolio_analysis` (`portfolio_id`, `user_id`, `risk_score`, `diversification_score`, `analysis_result`, `Converstaion_id`)
+VALUES (
+    1, 
+    'user_01', 
+    75, 
+    40, 
+    '현재 IT 섹터 비중이 너무 높습니다. 채권이나 배당주로 분산 투자가 필요합니다.', 
+    2 -- Chatbot 테이블의 Conversation_id 참조
+);
+```
+
+```
+-- 삼성전자(005930)에 대한 종합 요약 정보 저장 (요약)
+INSERT INTO `Stock_Summary` (`Summary`, `Converstaion_id`, `stock_code`)
+VALUES (
+    '최근 반도체 업황 개선 기대감과 외국인 매수세가 유입되며 긍정적인 전망이 우세합니다.', 
+    3, 
+    '005930'
+);
+
+-- FR-STOCK-003 요약 업데이트.
+UPDATE Stock_Summary 
+SET Summary = '업종 평균 대비 저평가 상태로 전환되었습니다.' 
+WHERE stock_code = '005930';
+
+```
 
 </div>
 </details>
