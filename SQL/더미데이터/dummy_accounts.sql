@@ -165,3 +165,51 @@ VALUES (
     0,
     '정상'
 );
+
+-- 5. 증권 계좌 입금 (TRANS_001)
+-- ==========================================
+-- 민정기 계좌에 1천만원 입금
+START TRANSACTION;
+
+UPDATE accounts
+SET deposit = deposit + 10000000,
+    last_transaction_at = CURRENT_TIMESTAMP
+WHERE account_id = 1;
+
+INSERT INTO deposit_withdraw_history (account_id, transaction_type, amount, balance_after)
+VALUES (1, '입금', 10000000, (SELECT deposit FROM accounts WHERE account_id = 1));
+
+COMMIT;
+
+-- 김예지 계좌에 500만원 입금
+START TRANSACTION;
+
+UPDATE accounts
+SET deposit = deposit + 5000000,
+    last_transaction_at = CURRENT_TIMESTAMP
+WHERE account_id = 2;
+
+INSERT INTO deposit_withdraw_history (account_id, transaction_type, amount, balance_after)
+VALUES (2, '입금', 5000000, (SELECT deposit FROM accounts WHERE account_id = 2));
+
+COMMIT;
+
+-- 방지혁 계좌에 300만원 입금
+START TRANSACTION;
+
+UPDATE accounts
+SET deposit = deposit + 3000000,
+    last_transaction_at = CURRENT_TIMESTAMP
+WHERE account_id = 4;
+
+INSERT INTO deposit_withdraw_history (account_id, transaction_type, amount, balance_after)
+VALUES (4, '입금', 3000000, (SELECT deposit FROM accounts WHERE account_id = 4));
+
+COMMIT;
+
+-- loan_policy
+INSERT INTO loan_policy (loan_type, credit_grade_min, credit_grade_max, interest_rate, max_amount) VALUES
+('신용', 1, 3, 7.00, 10000000),
+('신용', 4, 6, 9.50, 5000000),
+('신용', 7, 9, 12.00, 3000000),
+('신용', 10, 10, NULL, NULL);
