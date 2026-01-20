@@ -26,12 +26,13 @@ WHERE admin_id = '관리자001';
 -- ADMIN_002 개인정보 관리
 
 -- 김정수(users.user_no = 3) 이메일 주소 변경
-INSERT INTO admin_modification_log (admin_no, user_no, modi_type, modi_detail) VALUES
-(1, 3, '수정', '사용자(김정수) 이메일 주소 변경: kimjeong@traders.com -> kimjs@traders.com');
+INSERT INTO admin_modification_log (admin_no, user_no, modi_type, modi_detail, modified_at) VALUES
+(1, 3, '수정', '사용자(김정수) 이메일 주소 변경: kimjeong@traders.com -> kimjs@traders.com', '2025-01-20 12:00:00');
 UPDATE users 
 SET user_email = 'kimjs@traders.com'
-WHERE user_no = 3
-
+WHERE user_no = 3;
+SELECT * FROM admin_modification_log WHERE modi_no = 23;
+SELECT * FROM users WHERE user_no = 3;
 -- 방지혁(users.user_no = 4) 정보(전화번호) 조회
 INSERT INTO admin_modification_log (admin_no, user_no, modi_type, modi_detail) VALUES
 (2, 4, '조회', '사용자(방지혁) 전화번호 조회');
@@ -59,4 +60,5 @@ LIMIT 1;
 
 -- 공지사항 작성
 INSERT INTO admin_notification (admin_no, noti_title, noti_text, is_alert) VALUES
-(3, '이벤트 종료 안내', '1.18일자로 OO이벤트가 종료됩니다.', FALSE);
+(3, '이벤트 종료 안내', '1.30일자로 OO이벤트가 종료됩니다.', FALSE);
+SELECT * FROM admin_notification WHERE noti_no = 21;
