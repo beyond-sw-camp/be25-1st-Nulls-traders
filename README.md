@@ -46,7 +46,7 @@
 * * *
 
 ### 2.5 🏀프로젝트 시나리오
-<img src="img/Scenario.png"/>
+[<img src="img/Scenario.png"/>](https://drive.google.com/file/d/1IZ-oC9UUSV5uRwYueSXk2hN4eeeuUTG0/view)
 
 * * *
 
