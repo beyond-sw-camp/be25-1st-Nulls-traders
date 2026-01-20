@@ -61,7 +61,8 @@
 * * *
 
 ## 6. 🐣ERD
-<img src="img/ERD.png" />
+
+[<img src="img/ERD.png" />](https://www.erdcloud.com/d/85rc3G9JSsJkdZcZD)
 
 * * *
 
