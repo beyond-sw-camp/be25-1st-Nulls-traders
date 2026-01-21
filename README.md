@@ -67,14 +67,14 @@
 
 * * *
 ## 4. 🐻요구사항 명세서
-<img width="1066" height="662" alt="요구사항 명세서1" src="https://github.com/user-attachments/assets/c136f4a9-3483-4209-8f92-aff2d6f2fe4a" />
-<img width="1066" height="670" alt="요구사항 명세서2" src="https://github.com/user-attachments/assets/e6169a05-a496-4675-844f-d0d7b1ab60ea" />
-<img width="1066" height="430" alt="요구사항 명세서3" src="https://github.com/user-attachments/assets/18a9d7a8-9b43-4f50-aebe-a1a0d98d1e72" />
-<img width="1066" height="727" alt="요구사항 명세서4" src="https://github.com/user-attachments/assets/4ec1afaa-56b0-490b-bbe1-5a8b0bbc7810" />
+[<img width="1066" height="662" alt="요구사항 명세서1" src="https://github.com/user-attachments/assets/c136f4a9-3483-4209-8f92-aff2d6f2fe4a" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=1883869354#gid=1883869354)
+[<img width="1066" height="670" alt="요구사항 명세서2" src="https://github.com/user-attachments/assets/e6169a05-a496-4675-844f-d0d7b1ab60ea" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=1883869354#gid=1883869354)
+[<img width="1066" height="430" alt="요구사항 명세서3" src="https://github.com/user-attachments/assets/18a9d7a8-9b43-4f50-aebe-a1a0d98d1e72" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=1883869354#gid=1883869354)
+[<img width="1066" height="727" alt="요구사항 명세서4" src="https://github.com/user-attachments/assets/4ec1afaa-56b0-490b-bbe1-5a8b0bbc7810" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=1883869354#gid=1883869354)
 
 * * *
 ## 5. 🐧테이블 명세서
-<img src="img/img_excel/1_테이블 명세서.png" /><img src="img/img_excel/4_테이블 명세서.png" /><img src="img/img_excel/6_테이블 명세서.png" /><img src="img/img_excel/7_테이블 명세서.png" /><img src="img/img_excel/8_테이블 명세서.png" /><img src="img/img_excel/9_테이블 명세서.png" /><img src="img/img_excel/11_테이블 명세서.png" />
+[<img src="img/img_excel/1_테이블 명세서.png" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=230922200#gid=230922200)[<img src="img/img_excel/4_테이블 명세서.png" /><img src="img/img_excel/6_테이블 명세서.png" /><img src="img/img_excel/7_테이블 명세서.png" /><img src="img/img_excel/8_테이블 명세서.png" /><img src="img/img_excel/9_테이블 명세서.png" /><img src="img/img_excel/11_테이블 명세서.png" />](https://docs.google.com/spreadsheets/d/1s73fa6eoJ0cGEjMRvSvFSdifvbpy81sdb09Z1dDYd_U/edit?gid=230922200#gid=230922200)
 
 * * *
 
